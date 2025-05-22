@@ -85,6 +85,7 @@ class TransportTechnology(Technology):
                 raise AttributeError(f"The transport technology {self.name} has neither capex_per_distance_transport nor capex_specific_transport attribute.")
             self.capex_per_distance_transport = self.capex_specific_transport * 0.0
         if "opex_specific_fixed_per_distance" in self.data_input.attribute_dict:
+            print("TEST _______________________________________________")
             self.opex_specific_fixed_per_distance = self.data_input.extract_input_data("opex_specific_fixed_per_distance", index_sets=["set_edges", "set_time_steps_yearly"], unit_category={"money": 1, "distance": -1, "energy_quantity": -1, "time": 1})
             self.opex_specific_fixed = self.opex_specific_fixed_per_distance * self.distance
         elif "opex_specific_fixed" in self.data_input.attribute_dict:
@@ -204,6 +205,9 @@ class TransportTechnology(Technology):
 
         # capex of transport technologies
         rules.constraint_transport_technology_capex()
+
+        # FK added as test
+        #rules.constraint_prevent_import_and_export()
 
     # defines disjuncts if technology on/off
     @classmethod
@@ -393,4 +397,99 @@ class TransportTechnologyRules(GenericRule):
         rhs = xr.zeros_like(global_mask)
         constraints = lhs == rhs
         self.constraints.add_constraint("constraint_transport_technology_capex",constraints)
+
+    def constraint_prevent_import_and_export(self):
+        """
+        Add constraint to prevent simultaneous import and export for each node.
+        This ensures a country primarily serves as either an importer or exporter at any given time,
+        using binary variables to enforce this mutual exclusivity.
+        """
+        logging.info("Starting constraint_prevent_transit")
+
+        # Get technologies, skip if none
+        techs = self.sets["set_transport_technologies"]
+        if len(techs) == 0:
+            logging.info("No transport technologies found")
+            return
+
+        constraint_count = 0
+
+        # For each transport technology
+        for tech in techs:
+            # For each time step - ensure we get the actual value, not the DataArray
+            time_steps = self.variables["flow_transport"].coords["set_time_steps_operation"].values
+            for time in time_steps:
+                # For each country/node
+                for country in self.sets["set_nodes"]:
+                    # Find incoming edges (imports to this country) - where country is the destination (TO)
+                    incoming_edges = [edge for edge in self.sets["set_edges"]
+                                      if isinstance(edge, str) and edge.split('-')[1] == country]
+
+                    # Find outgoing edges (exports from this country) - where country is the source (FROM)
+                    outgoing_edges = [edge for edge in self.sets["set_edges"]
+                                      if isinstance(edge, str) and edge.split('-')[0] == country]
+
+                    # Skip if no import/export potential
+                    if not incoming_edges or not outgoing_edges:
+                        continue
+
+                    # Create variable name based on country and time - we need strings for this
+                    var_name = f"import_mode_{tech}_{country}_{time}"
+
+                    # Create binary variables for import/export mode
+                    # 1 if country is importing, 0 if exporting
+                    import_mode_var = self.model.add_variables(
+                        binary=True,
+                        name=var_name
+                    )
+
+                    # Calculate total incoming flow (imports)
+                    total_imports_expr = 0
+                    has_imports = False
+                    for edge in incoming_edges:
+                        try:
+                            flow_var = self.variables["flow_transport"].loc[tech, edge, time]
+                            total_imports_expr += flow_var.to_linexpr()
+                            has_imports = True
+                        except (KeyError, IndexError):
+                            continue
+
+                    # Calculate total outgoing flow (exports)
+                    total_exports_expr = 0
+                    has_exports = False
+                    for edge in outgoing_edges:
+                        try:
+                            flow_var = self.variables["flow_transport"].loc[tech, edge, time]
+                            total_exports_expr += flow_var.to_linexpr()
+                            has_exports = True
+                        except (KeyError, IndexError):
+                            continue
+
+                    # Skip if either no import or export capability
+                    if not has_imports or not has_exports:
+                        continue
+
+                    # Find a large enough value for big-M constraint
+                    # This should be a conservative upper bound on the total flow
+                    max_capacity = 0
+                    # Use a fixed big-M value instead of trying to calculate from capacities
+                    big_M = 1e6  # A large enough value that won't cause numerical issues
+
+                    # Constraint 1: If import_mode is 1, exports must be 0
+                    self.constraints.add_constraint(
+                        f"no_export_when_importing_{tech}_{country}_{time}",
+                        total_exports_expr <= big_M * (1 - import_mode_var)
+                    )
+
+                    # Constraint 2: If import_mode is 0, imports must be 0
+                    self.constraints.add_constraint(
+                        f"no_import_when_exporting_{tech}_{country}_{time}",
+                        total_imports_expr <= big_M * import_mode_var
+                    )
+
+                    constraint_count += 2
+
+        logging.info(f"Created {constraint_count} transit prevention constraints")
+
+
 

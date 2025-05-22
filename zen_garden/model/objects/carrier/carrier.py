@@ -51,7 +51,8 @@ class Carrier(Element):
         self.availability_export_yearly = self.data_input.extract_input_data("availability_export_yearly", index_sets=["set_nodes", "set_time_steps_yearly"], time_steps="set_time_steps_yearly", unit_category={"energy_quantity": 1})
         self.carbon_intensity_carrier_import = self.data_input.extract_input_data("carbon_intensity_carrier_import", index_sets=["set_nodes", "set_time_steps_yearly"], time_steps="set_time_steps_yearly", unit_category={"emissions": 1, "energy_quantity": -1})
         self.carbon_intensity_carrier_export = self.data_input.extract_input_data("carbon_intensity_carrier_export", index_sets=["set_nodes", "set_time_steps_yearly"], time_steps="set_time_steps_yearly",  unit_category={"emissions": 1, "energy_quantity": -1})
-        self.price_shed_demand = self.data_input.extract_input_data("price_shed_demand", index_sets=[], unit_category={"money": 1, "energy_quantity": -1})
+        self.price_shed_demand = self.data_input.extract_input_data("price_shed_demand", index_sets=["set_nodes", "set_time_steps_yearly"], time_steps="set_time_steps_yearly", unit_category={"money": 1, "energy_quantity": -1})
+        self.local_production_share = self.data_input.extract_input_data("local_production_share", index_sets=["set_nodes", "set_time_steps_yearly"],time_steps="set_time_steps_yearly", unit_category={})
 
     def overwrite_time_steps(self, base_time_steps):
         """ overwrites set_time_steps_operation
@@ -89,12 +90,13 @@ class Carrier(Element):
         # export price
         optimization_setup.parameters.add_parameter(name="price_export", index_names=["set_carriers", "set_nodes", "set_time_steps_operation"], doc='Parameter which specifies the export carrier price', calling_class=cls)
         # demand shedding price
-        optimization_setup.parameters.add_parameter(name="price_shed_demand", index_names=["set_carriers"], doc='Parameter which specifies the price to shed demand', calling_class=cls)
+        optimization_setup.parameters.add_parameter(name="price_shed_demand", index_names=["set_carriers","set_nodes", "set_time_steps_yearly"], doc='Parameter which specifies the price to shed demand', calling_class=cls)
         # carbon intensity carrier import
         optimization_setup.parameters.add_parameter(name="carbon_intensity_carrier_import", index_names=["set_carriers", "set_nodes", "set_time_steps_yearly"], doc='Parameter which specifies the carbon intensity of carrier import', calling_class=cls)
         # carbon intensity carrier exmport
         optimization_setup.parameters.add_parameter(name="carbon_intensity_carrier_export", index_names=["set_carriers", "set_nodes", "set_time_steps_yearly"], doc='Parameter which specifies the carbon intensity of carrier export', calling_class=cls)
-
+        #
+        optimization_setup.parameters.add_parameter(name="local_production_share",index_names=["set_carriers", "set_nodes", "set_time_steps_yearly"],doc='Required share of local production for demand coverage',calling_class=cls)
     @classmethod
     def construct_vars(cls, optimization_setup):
         """ constructs the pe.Vars of the class <Carrier>
@@ -164,6 +166,9 @@ class Carrier(Element):
 
         # energy balance
         rules.constraint_nodal_energy_balance()
+
+        #self sufficiency constraint
+        rules.constraint_regional_production_share()
 
         # add pe.Sets of the child classes
         for subclass in cls.__subclasses__():
@@ -292,12 +297,22 @@ class CarrierRules(GenericRule):
            D_{c,n,t} \leq d_{c,n,t}
 
         """
+        # Get the time step mapping to convert yearly price to operation time steps
+        times = self.get_year_time_step_array()
+
+        # Convert the price from yearly to operation time steps
+        price_shed_demand_operation = (
+                self.parameters.price_shed_demand.broadcast_like(times) * times
+        ).sum("set_time_steps_yearly")
 
         ### mask for finite price, otherwise the shed demand is zero
-        mask = self.parameters.price_shed_demand != np.inf
+        mask = price_shed_demand_operation != np.inf
 
-        # cost of shedding demand
-        lhs_cost = (self.variables["cost_shed_demand"] - self.parameters.price_shed_demand * self.variables["shed_demand"]).where(mask)
+        # cost of shedding demand with location and time-dependent prices
+        lhs_cost = (
+                self.variables["cost_shed_demand"] -
+                price_shed_demand_operation * self.variables["shed_demand"]
+        ).where(mask)
         rhs_cost = 0
         constraints_cost = lhs_cost == rhs_cost
 
@@ -306,8 +321,8 @@ class CarrierRules(GenericRule):
         rhs_shed_demand = self.parameters.demand.where(mask, 0.0)
         constraints_shed_demand = lhs_shed_demand <= rhs_shed_demand
 
-        self.constraints.add_constraint("constraint_cost_shed_demand",constraints_cost)
-        self.constraints.add_constraint("constraint_limit_shed_demand",constraints_shed_demand)
+        self.constraints.add_constraint("constraint_cost_shed_demand", constraints_cost)
+        self.constraints.add_constraint("constraint_limit_shed_demand", constraints_shed_demand)
 
     def constraint_carbon_emissions_carrier(self):
         """ carbon emissions of importing and exporting carrier
@@ -486,3 +501,71 @@ class CarrierRules(GenericRule):
 
         ### return
         self.constraints.add_constraint("constraint_nodal_energy_balance",constraints)
+
+    def constraint_regional_production_share(self):
+        """Regional production share constraint ensuring minimum local production for each timestep
+
+        For each region and carrier:
+        local_production(t) >= share * demand(t)
+
+        where local_production and demand are summed over all nodes in the region
+        """
+        for region_name in self.optimization_setup.system["set_regions"]:
+            # Get nodes in this region
+            region_nodes = self.optimization_setup.system["set_regions"][region_name]
+
+            for carrier in self.optimization_setup.sets["set_carriers"]:
+                # Get technologies that output this carrier
+                techs_out = [
+                    tech for tech in self.optimization_setup.sets["set_conversion_technologies"]
+                    if carrier in self.optimization_setup.sets["set_output_carriers"][tech]
+                ]
+
+                if not techs_out:
+                    continue
+
+                # Calculate production per timestep for all nodes in region
+                production = sum(
+                    self.variables["flow_conversion_output"]
+                        .loc[techs_out, [carrier], node]
+                        .sum(["set_conversion_technologies", "set_output_carriers"])
+                    for node in region_nodes
+                )
+
+
+                # Calculate demand per timestep for all nodes in region
+                # First get individual node demands to verify data
+                node_demands = []
+                for node in region_nodes:
+                    node_demand = self.parameters.demand.loc[{
+                        'set_carriers': "HP", #hardcoding approach to do HP because only deman in this model but better to have carrier
+                        'set_nodes': node
+                    }]
+                    node_demands.append(node_demand)
+
+                # Combine regional node demands by summing directly over the region nodes
+                demand = xr.concat(node_demands, dim='set_nodes').sel(set_nodes=list(region_nodes)).sum(
+                    dim='set_nodes')
+
+                # Calculate average share across nodes in region
+                shares = []
+                for node in region_nodes:
+                    node_share = self.parameters.local_production_share.sel(
+                        set_nodes=node,
+                        set_carriers=carrier,
+                        set_time_steps_yearly=self.optimization_setup.sets["set_time_steps_yearly"]
+                    )
+                    times = self.get_year_time_step_array()
+                    node_share = (node_share.broadcast_like(times) * times).sum("set_time_steps_yearly")
+                    shares.append(node_share)
+
+                    # Combine regional node shares using the same approach as demand
+                share = xr.concat(shares, dim='set_nodes').sel(set_nodes=list(region_nodes)).mean(
+                    dim='set_nodes')
+
+                rhs = share * demand
+
+                self.constraints.add_constraint(
+                    f"constraint_regional_production_share_{region_name}_{carrier}",
+                    production >= rhs
+                )

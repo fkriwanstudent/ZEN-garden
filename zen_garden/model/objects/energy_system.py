@@ -76,6 +76,8 @@ class EnergySystem:
         self.set_nodes = self.data_input.extract_locations()
         self.set_nodes_on_edges = self.calculate_edges_from_nodes()
         self.set_edges = list(self.set_nodes_on_edges.keys())
+        #added regions.
+        self.set_regions = self.system["set_regions"]
         self.set_haversine_distances_edges = self.calculate_haversine_distances_from_nodes()
         self.set_technologies = self.system["set_technologies"]
         # base time steps
@@ -97,6 +99,7 @@ class EnergySystem:
         self.set_transport_technologies = self.system["set_transport_technologies"]
         self.set_storage_technologies = self.system["set_storage_technologies"]
         self.set_retrofitting_technologies= self.system["set_retrofitting_technologies"]
+
         # discount rate
         self.discount_rate = self.data_input.extract_input_data("discount_rate", index_sets=[], unit_category={})
         # carbon emissions limit
@@ -279,6 +282,11 @@ class EnergySystem:
         # net_present_cost
         variables.add_variable(model, name="net_present_cost", index_sets=sets["set_time_steps_yearly"],
                                doc="net_present_cost of energy system", unit_category={"money": 1})
+        # Add variable to track regional costs
+        variables.add_variable(model, name="regional_cost_total",
+                               index_sets=sets["set_time_steps_yearly"],
+                               doc="Total cost for one region",
+                               unit_category={"money": 1})
 
     def construct_constraints(self):
         """ constructs the constraints of the class <EnergySystem> """
@@ -313,6 +321,9 @@ class EnergySystem:
         # disable annual carbon emissions overshoot
         self.rules.constraint_carbon_emissions_annual_overshoot()
 
+        # create the rules for regional minimal cost (for extra objective function)
+       #self.rules.constraint_regional_cost_total()
+
 
     def construct_objective(self):
         """ constructs the pe.Objective of the class <EnergySystem> """
@@ -323,6 +334,8 @@ class EnergySystem:
             objective = self.rules.objective_total_cost(self.optimization_setup.model)
         elif self.optimization_setup.analysis["objective"] == "total_carbon_emissions":
             objective = self.rules.objective_total_carbon_emissions(self.optimization_setup.model)
+        elif self.optimization_setup.analysis["objective"] == "regional_minimum_cost":
+            objective = self.rules.objective_regional_minimum_cost(self.optimization_setup.model)
         else:
             raise KeyError(f"Objective type {self.optimization_setup.analysis['objective']} not known")
 
@@ -336,7 +349,6 @@ class EnergySystem:
 
         # construct objective
         self.optimization_setup.model.add_objective(objective.to_linexpr())
-
 
 class EnergySystemRules(GenericRule):
     """
@@ -352,6 +364,30 @@ class EnergySystemRules(GenericRule):
 
         super().__init__(optimization_setup)
 
+    def constraint_regional_cost_total(self, region_name="Europe"):
+        """Calculate total costs for a region"""
+        region_name = "rest"
+        region_nodes = self.optimization_setup.system["set_regions"][region_name]
+        # Get nodes in the specified region
+        print(f"Constructing regional cost constraint for {region_name}")
+        print(f"Found nodes for region {region_name}: {region_nodes}")
+
+        for tech in self.system["set_technologies"]:
+            # Calculate total cost for all nodes in the region
+            regional_cost = sum(
+                self.variables["cost_opex_yearly"].loc[tech,node]
+                for node in region_nodes) #
+
+            for capacity_type in self.optimization_setup.system["set_capacity_types"]:
+                regional_cost += sum(self.variables["cost_capex"].loc[tech,capacity_type, node] for node in region_nodes)
+
+                #    Set constraint: regional_cost_total equals sum of costs in the region
+        print(f"Computed regional cost for {region_name}: {regional_cost}")
+        lhs = self.variables["regional_cost_total"]
+        rhs = regional_cost
+        constraints =  lhs == rhs
+
+        self.constraints.add_constraint(f"constraint_regional_cost_total_{region_name}",constraints)
 
     def constraint_carbon_emissions_cumulative(self):
         """ cumulative carbon emissions over time
@@ -532,6 +568,10 @@ class EnergySystemRules(GenericRule):
 
     # Objective rules
     # ---------------
+    # In EnergySystemRules class
+    def objective_regional_minimum_cost(self, model):
+        """Objective function to minimize costs for a specific region"""
+        return sum([model.variables["regional_cost_total"][year] for year in self.energy_system.set_time_steps_yearly])
 
     def objective_total_cost(self, model):
         """objective function to minimize the total net present cost

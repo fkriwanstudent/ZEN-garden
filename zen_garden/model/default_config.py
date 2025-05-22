@@ -58,7 +58,6 @@ class Subsets(Subscriptable):
         "set_storage_technologies": [],
     }
 
-
 class HeaderDataInputs(Subscriptable):
     set_nodes: str = "node"
     set_edges: str = "edge"
@@ -92,6 +91,7 @@ class System(Subscriptable):
     storage_periodicity: bool = True
     set_transport_technologies: list[str] = []
     set_transport_technologies_loss_exponential: list[str] = []
+    set_regions: dict[str, list[str]] = {}
     double_capex_transport: bool = False
     set_nodes: list[str] = []
     exclude_parameters_from_TSA: bool = True

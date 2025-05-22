@@ -276,6 +276,8 @@ class ConversionTechnology(Technology):
         rules.constraint_opex_emissions_technology_conversion()
         # conversion factor
         rules.constraint_carrier_conversion()
+        # conversion factor
+        #rules.constraint_min_load_conversion()
 
         # capex
         set_pwa_capex = cls.create_custom_set(["set_conversion_technologies", "set_capex_pwa", "set_nodes", "set_time_steps_yearly"], optimization_setup)
@@ -309,6 +311,7 @@ class ConversionTechnology(Technology):
         :param binary_var: binary disjunction variable
         """
         # get parameter object
+        binary_var = 1
         model = optimization_setup.model
         params = optimization_setup.parameters
         constraints = optimization_setup.constraints
@@ -328,7 +331,7 @@ class ConversionTechnology(Technology):
         # disjunct constraints min load
         # TODO make to constraint rule or integrate in new structure!!!
         constraints.add_constraint_block(model, name=f"disjunct_conversion_technology_min_load_{tech}_{capacity_type}_{node}_{time}",
-                                         constraint=constraint, disjunction_var=binary_var)
+                                         constraint=constraint, disjunction_var=1)
 
     @classmethod
     def disjunct_off_technology(cls, optimization_setup, tech, capacity_type, node, time, binary_var):
@@ -405,6 +408,28 @@ class ConversionTechnologyRules(GenericRule):
 
         super().__init__(optimization_setup)
 
+    def constraint_min_load_conversion(self):
+        """Minimum load constraint for conversion technologies"""
+        techs = self.sets["set_conversion_technologies"]
+        if len(techs) == 0:
+            return
+        nodes = self.sets["set_nodes"]
+        times = self.parameters.min_load.coords["set_time_steps_operation"]
+        time_step_year = xr.DataArray(
+            [self.optimization_setup.energy_system.time_steps.convert_time_step_operation2year(t) for t in times.data],
+            coords=[times])
+
+        term_capacity = (
+                self.parameters.min_load.loc[techs, "power", nodes, :]
+                * self.variables["capacity"].loc[techs, "power", nodes, time_step_year]
+        ).rename({"set_technologies": "set_conversion_technologies", "set_location": "set_nodes"})
+        term_reference_flow = self.get_flow_expression_conversion(techs, nodes)
+
+        lhs = term_reference_flow - term_capacity
+        rhs = 0
+        constraints = lhs >= rhs
+
+        self.constraints.add_constraint("constraint_min_load_conversion", constraints)
 
     def constraint_capacity_factor_conversion(self):
         """ Load is limited by the installed capacity and the maximum load factor

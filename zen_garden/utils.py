@@ -1085,7 +1085,17 @@ class ScenarioUtils:
         :return: elements in scenario
         """
         if config.system["conduct_scenario_analysis"]:
-            scenarios_path = os.path.abspath(os.path.join(config.analysis['dataset'], "scenarios.json"))
+
+            if config.system["conduct_uncertainty_capacity"]:
+                scenarios_path = os.path.abspath(os.path.join(config.analysis['dataset'], "uncertainty_capacity.json"))
+            elif config.system["conduct_uncertainty_opex"]:
+                scenarios_path = os.path.abspath(os.path.join(config.analysis['dataset'], "uncertainty_opex.json"))
+            elif config.system["conduct_uncertainty_capex"]:
+                scenarios_path = os.path.abspath(os.path.join(config.analysis['dataset'], "uncertainty_capex.json"))
+            elif config.system["conduct_uncertainty_combined"]:
+                scenarios_path = os.path.abspath(os.path.join(config.analysis['dataset'], "uncertainty_combined.json"))
+            else:
+                scenarios_path = os.path.abspath(os.path.join(config.analysis['dataset'], "scenarios.json"))
             if os.path.exists(scenarios_path):
                 with open(scenarios_path, "r") as file:
                     scenarios = json.load(file)
