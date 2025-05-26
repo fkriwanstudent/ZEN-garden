@@ -10,3 +10,4 @@ dependencies:
 
 # conda env create -f zen_garden_env.yml
 # conda remove --name zen-garden --all
+# conda activate zen-garden

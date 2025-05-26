@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 
 from zen_garden.postprocess.results.solution_loader import (

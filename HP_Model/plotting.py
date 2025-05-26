@@ -21,6 +21,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import math
 import matplotlib.ticker as ticker
+import kaleido
 import joypy
 
 # Update global font size and styles
@@ -40,7 +41,7 @@ def plot_scenario_results(param_dir, parameter, technology, carrier):
     """
     try:
         output_dir = Path(
-            "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+            "./Final_plots")
         # Set up Seaborn style
         sns.set_theme(style="whitegrid")
 
@@ -332,7 +333,7 @@ def plot_pie_scenarios(param_dir):
 
             # Save plot
             output_dir = Path(
-                "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+                "./Final_plots")
             plot_file = output_dir / filename
             plt.savefig(plot_file, dpi=300, bbox_inches='tight')
             plt.close()
@@ -429,7 +430,7 @@ def plot_flow_conversion(input_file, scenario='value_scenario_'):
     # Ensure input_file is a Path object
     file_path = Path(input_file)
     output_dir = Path(
-        "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+        "./Final_plots")
 
     # Read the data file
     df = pd.read_csv(file_path)
@@ -586,7 +587,7 @@ def plot_capacity_timeseries(input_file, scenario='value_scenario_'):
     year_mapping = {i: 2022 + i for i in range(14)}  # Goes up to 2035
 
     # Ensure input_file is a Path object
-    output_dir = Path("/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+    output_dir = Path("./Final_plots")
 
     # Read the data file
     df = pd.read_csv(input_file)
@@ -998,7 +999,7 @@ def plot_cumulative_costs(input_file, scenario='value_scenario_', cost_type="OPE
     sns.despine(left=False, bottom=False)
 
     # Save plot
-    output_dir = Path("/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+    output_dir = Path("./Final_plots")
     plot_path = output_dir / f'cost_cumulative_conversion_{cost_type}_by_node.png'
     plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     print(f"Plot saved to: {plot_path}")
@@ -1159,7 +1160,7 @@ def plot_temporal_costs(opex_file, capex_file, scenario='value_scenario_'):
 
     # Save plot
     output_dir = Path(
-        "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+        "./Final_plots")
     plot_path = output_dir / 'cost_temporal_combined.png'
     plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     print(f"Plot saved to: {plot_path}")
@@ -1276,7 +1277,7 @@ def plot_total_costs_scenarios(opex_file, capex_file, save=True):
 
     if save:
         # Get the directory of the input file for saving
-        save_dir = Path("/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+        save_dir = Path("./Final_plots")
 
         filepath = save_dir / 'cost_total_scenario_costs.png'
         plt.savefig(filepath, dpi=300, bbox_inches='tight')
@@ -1429,7 +1430,7 @@ def plot_country_costs_scenarios(opex_file, capex_file, save=True):
 
     if save:
         # Get the directory for saving
-        save_dir = Path("/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+        save_dir = Path("./Final_plots")
 
         filepath = save_dir / 'cost_country_costs_by_scenario.png'
         plt.savefig(filepath, dpi=300, bbox_inches='tight')
@@ -1504,7 +1505,7 @@ def plot_timestep_costs_comparison(opex_file, capex_file, save=True):
 
     if save:
         # Get the directory of the input file for saving
-        save_dir = Path("/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+        save_dir = Path("./Final_plots")
 
         filepath = save_dir / 'cost_sceanario_comparison_timestep_costs.png'
         plt.savefig(filepath, dpi=300, bbox_inches='tight')
@@ -1613,7 +1614,7 @@ def plot_nodal_scenario_costs(opex_data, capex_data):
 
 
     # Save plot
-    output_dir = Path("/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+    output_dir = Path("./Final_plots")
     plot_path = output_dir / 'cost_scenario_nodal_cost_comparison.png'
     plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     print(f"Plot saved to: {plot_path}")
@@ -1699,7 +1700,7 @@ def plot_timestep_costs_base(opex_file, capex_file, save=True):
 
     if save:
         # Get the directory of the input file for saving
-        save_dir = Path("/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+        save_dir = Path("./Final_plots")
 
         filepath = save_dir / 'cost_base_scenario_timestep_costs.png'
         plt.savefig(filepath, dpi=300, bbox_inches='tight')
@@ -1773,7 +1774,7 @@ def plot_transport_flow(transport_file, parameter='transport'):
 
     try:
         param_dir = Path(
-            "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+            "./Final_plots")
         df = pd.read_csv(transport_file)
         scenario_cols = [col for col in df.columns if col.startswith('value_scenario_')]
         technologies = df['technology'].unique()
@@ -2287,7 +2288,7 @@ def plot_production_uncertainty_cumulative(param_dir, technology="HP_assembly"):
         # Adjust layout for all subplots
         plt.tight_layout()
 
-        param_dir = Path("/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots/uncertainty_plot")
+        param_dir = Path("./Final_plots/uncertainty_plot")
         # Save combined plot
         plot_file = param_dir / f"cumulative_producion_uncertainty_{technology}.png"
         plt.savefig(plot_file, dpi=300, bbox_inches='tight')
@@ -2421,7 +2422,7 @@ def plot_production_uncertainty_combined(param_dir, technology="HP_assembly"):
 
         # Save plot
         param_dir = Path(
-            "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots/uncertainty_plot")
+            "./Final_plots/uncertainty_plot")
         # Save combined plot
         plot_file = param_dir / f"combined_production_uncertainty_{technology}.png"
         plt.savefig(plot_file, dpi=300, bbox_inches='tight')
@@ -2575,7 +2576,7 @@ def plot_production_uncertainty_2035(param_dir, technology="HP_assembly"):
         plt.tight_layout()
 
         param_dir = Path(
-            "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots/uncertainty_plot")
+            "./Final_plots/uncertainty_plot")
         plot_file = param_dir / f"last_timestep_uncertainty_{technology}.png"
         plt.savefig(plot_file, dpi=300, bbox_inches='tight')
         plt.close()
@@ -2698,7 +2699,7 @@ def plot_total_cost_uncertainty_violins(param_dir_opex, param_dir_capex):
 
         # Save plot
         param_dir = Path(
-            "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots/uncertainty_plot")
+            "./Final_plots/uncertainty_plot")
         plot_file = param_dir / "total_combined_cost_uncertainty_comparison_violin_combined.png"
         plt.savefig(plot_file, dpi=300, bbox_inches='tight')
         plt.close()
@@ -2821,7 +2822,7 @@ def plot_total_cost_uncertainty_violin(param_dir_opex, param_dir_capex):
 
         # Save plot
         param_dir = Path(
-            "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots/uncertainty_plot")
+            "./Final_plots/uncertainty_plot")
         plot_file = param_dir / "total_combined_cost_uncertainty_comparison_violin.png"
         plt.savefig(plot_file, dpi=300, bbox_inches='tight')
         plt.close()

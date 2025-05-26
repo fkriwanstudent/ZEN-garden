@@ -21,22 +21,22 @@ def run_plotting():
     ]
 
     # Example usage
-    opex_yearly_file = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/cost_opex_yearly/cost_opex_yearly_scenarios.csv"
-    capex_yearly_file = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/cost_capex/cost_capex_scenarios.csv"
-    production_file = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/flow_conversion_output/flow_conversion_output_scenarios.csv"
-    capacity_extension = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/capacity_addition/capacity_addition_scenarios.csv"
-    capacity_file = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/capacity/capacity_scenarios.csv"
-    opex_data = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/cost_opex_total/cost_opex_total_scenarios.csv"
-    capex_data = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/cost_capex_total/cost_capex_total_scenarios.csv"
-    transport_data = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/flow_transport/flow_transport_scenarios.csv"
+    opex_yearly_file = "./parameter_results/cost_opex_yearly/cost_opex_yearly_scenarios.csv"
+    capex_yearly_file = "./parameter_results/cost_capex/cost_capex_scenarios.csv"
+    production_file = "./parameter_results/flow_conversion_output/flow_conversion_output_scenarios.csv"
+    capacity_extension = "./parameter_results/capacity_addition/capacity_addition_scenarios.csv"
+    capacity_file = "./parameter_results/capacity/capacity_scenarios.csv"
+    opex_data = "./parameter_results/cost_opex_total/cost_opex_total_scenarios.csv"
+    capex_data = "./parameter_results/cost_capex_total/cost_capex_total_scenarios.csv"
+    transport_data = "./parameter_results/flow_transport/flow_transport_scenarios.csv"
 
 
     plot_country_costs_scenarios(opex_yearly_file, capex_yearly_file)
 
     # #plot uncertainty boxplot
-    production_MC_dir = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/uncertainty_results/flow_conversion_output"
-    opex_MC_dir = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/uncertainty_results/cost_opex_total"
-    capex_MC_dir = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/uncertainty_results/cost_capex_total"
+    production_MC_dir = "./uncertainty_results/flow_conversion_output"
+    opex_MC_dir = "./uncertainty_results/cost_opex_total"
+    capex_MC_dir = "./uncertainty_results/cost_capex_total"
     # Run the analysis
     # plot_production_uncertainty_cumulative(production_MC_dir, "HP_assembly")
     # plot_production_uncertainty_combined(production_MC_dir, "HP_assembly")

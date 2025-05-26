@@ -17,7 +17,7 @@ from zen_garden.postprocess.results.results import Results
 
 
 # Configure paths
-RESULTS_PATH = '/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/outputs/ZEN-Model_HP'
+# RESULTS_PATH = '/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/outputs/ZEN-Model_HP'
 OUTPUT_BASE_DIR = 'parameter_results'
 
 # List of parameters to export
@@ -117,7 +117,7 @@ def create_flow_plots(data_file, parameter: str, technology, carrier: str = "HP"
         # Set up Seaborn style
         sns.set_theme(style="whitegrid")
         output_dir = Path(
-            "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Final_plots")
+            "./Final_plots")
 
         # Define color palette
         palette = ["#b7afd5", "#becbd8", "#bfcc67", "#b2cfa9", "#9c91c7",
