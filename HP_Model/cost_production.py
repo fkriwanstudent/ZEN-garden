@@ -914,10 +914,10 @@ def calculate_levelized_cost(total_demand_df, output_dir):
 def main():
     """Main function to execute the analysis"""
     # File paths
-    flow_file = '/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/flow_conversion_output/flow_conversion_output_scenarios.csv'
-    opex_file = '/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/cost_opex_yearly/cost_opex_yearly_scenarios.csv'
-    capex_file = '/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/cost_capex/cost_capex_scenarios.csv'
-    transport_file = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/flow_transport/flow_transport_scenarios.csv"
+    flow_file = './parameter_results/flow_conversion_output/flow_conversion_output_scenarios.csv'
+    opex_file = './parameter_results/cost_opex_yearly/cost_opex_yearly_scenarios.csv'
+    capex_file = './parameter_results/cost_capex/cost_capex_scenarios.csv'
+    transport_file = "./parameter_results/flow_transport/flow_transport_scenarios.csv"
 
     print("Starting transport cost analysis...")
 
@@ -966,7 +966,7 @@ def main():
 
     # Save results
     output_dir = Path(
-        "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/production cost")
+        "./production cost")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Calculate levelized costs for heat pump production

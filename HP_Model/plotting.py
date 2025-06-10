@@ -104,8 +104,8 @@ def plot_scenario_results(param_dir, parameter, technology, carrier):
             return
 
         # Modified subplot layout: 3 rows, 2 columns
-        n_rows = 2
-        n_cols = 3
+        n_rows = 6
+        n_cols = 1
 
         # Create figure
         #fig = plt.figure(figsize=(15, 16))  # Adjusted figure size for 3x2 layout
@@ -1330,11 +1330,11 @@ def plot_country_costs_scenarios(opex_file, capex_file, save=True):
     # Dictionary for scenario name mapping
     scenario_names = {
         'value_scenario_': 'BAU',
-        'value_scenario_S1': 'NZE Demand',
-        'value_scenario_S2': 'Policy',
+        'value_scenario_S1': 'NZE',
+        'value_scenario_S2': 'Europe 40%',
         'value_scenario_S3': 'Recycling',
         'value_scenario_S4': 'Diffusion',
-        'value_scenario_S5': 'Trade'
+        'value_scenario_S5': 'Tariffs'
     }
 
     # Create a combined dataframe for total costs (OPEX + CAPEX)
@@ -1409,7 +1409,7 @@ def plot_country_costs_scenarios(opex_file, capex_file, save=True):
     # Customize the plot
     ax.set_ylabel('Total Cost (€)', fontsize=12)
     ax.set_xticks(x)
-    ax.set_xticklabels([scenario_names[s] for s in scenarios], rotation=45, ha='right')
+    ax.set_xticklabels([scenario_names[s] for s in scenarios], rotation=0, ha='center')
 
     # Set the y-axis to use scientific notation with a specific format
     ax.yaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
@@ -1420,7 +1420,7 @@ def plot_country_costs_scenarios(opex_file, capex_file, save=True):
     # Add legend below the plot and centered
     plt.legend(
         loc='lower center',
-        bbox_to_anchor=(0.5, -0.3),
+        bbox_to_anchor=(0.5, -0.15),
         ncol=8, #len(all_nodes) // 2 + len(all_nodes) % 2,  # Distribute nodes evenly
         frameon=False
     )
@@ -1880,12 +1880,12 @@ def plot_transport_flow(transport_file, parameter='transport'):
 
             # Dictionary for scenario name mapping
             scenario_names = {
-                0: 'Base Case',
+                0: 'BAU',
                 1: 'NZE',
-                2: 'Policy',
+                2: 'Europe 40%',
                 3: 'Recyling',
                 4: 'Diffusion',
-                5: 'Trade'
+                5: 'Tariffs'
             }
 
             annotations = []

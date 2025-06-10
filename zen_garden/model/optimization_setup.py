@@ -497,8 +497,13 @@ class OptimizationSetup(object):
     def solve(self):
         """Create model instance by assigning parameter values and instantiating the sets """
         solver_name = self.solver["name"]
-        # remove options that are None
-        solver_options = {key: self.solver.solver_options[key] for key in self.solver.solver_options if self.solver.solver_options[key] is not None}
+
+        # Filter out internal attributes that shouldn't be passed to the solver
+        solver_options = {}
+        for key in self.solver.solver_options:
+            # Skip internal attributes used for iteration
+            if key not in ['fix_keys', 'i', '_fix_keys', '_i'] and self.solver.solver_options[key] is not None:
+                solver_options[key] = self.solver.solver_options[key]
 
         logging.info(f"\n--- Solve model instance using {solver_name} ---\n")
         # disable logger temporarily
@@ -515,7 +520,7 @@ class OptimizationSetup(object):
         # enable logger
         logging.disable(logging.NOTSET)
 
-        #introducee regional minimum cost
+        # introducee regional minimum cost
         # Save results if this is a regional minimum cost optimization
         if self.analysis["objective"] == "regional_minimum_cost":
             target_region = "Europe"
@@ -539,6 +544,52 @@ class OptimizationSetup(object):
             self.optimality = True
         else:
             self.optimality = False
+
+    # def solve(self):
+    #     """Create model instance by assigning parameter values and instantiating the sets """
+    #     solver_name = self.solver["name"]
+    #     # remove options that are None
+    #     solver_options = {key: self.solver.solver_options[key] for key in self.solver.solver_options if self.solver.solver_options[key] is not None}
+    #
+    #     logging.info(f"\n--- Solve model instance using {solver_name} ---\n")
+    #     # disable logger temporarily
+    #     logging.disable(logging.WARNING)
+    #
+    #     if solver_name == "gurobi":
+    #         self.model.solve(solver_name=solver_name, io_api=self.solver["io_api"],
+    #                          keep_files=self.solver["keep_files"], sanitize_zeros=True,
+    #                          # remaining kwargs are passed to the solver
+    #                          **solver_options)
+    #     else:
+    #         self.model.solve(solver_name=solver_name, io_api=self.solver["io_api"],
+    #                          keep_files=self.solver["keep_files"], sanitize_zeros=True)
+    #     # enable logger
+    #     logging.disable(logging.NOTSET)
+    #
+    #     #introducee regional minimum cost
+    #     # Save results if this is a regional minimum cost optimization
+    #     if self.analysis["objective"] == "regional_minimum_cost":
+    #         target_region = "Europe"
+    #         result = self.model.solution["regional_cost_total"]
+    #
+    #         # Create DataFrame with results
+    #         import pandas as pd
+    #         if not hasattr(self, 'regional_minimum_costs'):
+    #             self.regional_minimum_costs = pd.DataFrame(columns=['Region', 'Minimum_Cost'])
+    #
+    #         # Add or update result for this region
+    #         self.regional_minimum_costs.loc[len(self.regional_minimum_costs)] = [target_region, result]
+    #
+    #         # Save to CSV
+    #         self.regional_minimum_costs.to_csv('regional_minimum_costs.csv', index=False)
+    #
+    #     if self.model.termination_condition == 'optimal':
+    #         self.optimality = True
+    #     elif self.model.termination_condition == "suboptimal":
+    #         logging.warning("The optimization is suboptimal")
+    #         self.optimality = True
+    #     else:
+    #         self.optimality = False
 
     def write_IIS(self):
         """ write an ILP file to print the IIS if infeasible. Only possible for gurobi

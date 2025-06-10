@@ -525,6 +525,29 @@ class EnergySystemRules(GenericRule):
 
         self.constraints.add_constraint("constraint_carbon_emissions_annual",constraints)
 
+    # def constraint_cost_carbon_emissions_total(self):
+    #     """ carbon cost associated with the carbon emissions of the system in each year
+    #
+    #     .. math::
+    #         OPEX_y^\mathrm{c} = E_y\mu + E_y^\mathrm{o}\mu^\mathrm{o}
+    #
+    #     """
+    #     mask_last_year = [year == self.energy_system.set_time_steps_yearly[-1] for year in self.energy_system.set_time_steps_yearly]
+    #
+    #     lhs = (self.variables["cost_carbon_emissions_total"]
+    #                - self.variables["carbon_emissions_annual"] * self.parameters.price_carbon_emissions)
+    #     # add cost for overshooting carbon emissions budget
+    #     if self.parameters.price_carbon_emissions_budget_overshoot != np.inf:
+    #         lhs -= self.variables["carbon_emissions_budget_overshoot"].where(mask_last_year) * self.parameters.price_carbon_emissions_budget_overshoot
+    #     # add cost for overshooting annual carbon emissions limit
+    #     if self.parameters.price_carbon_emissions_annual_overshoot != np.inf:
+    #         lhs -= self.variables["carbon_emissions_annual_overshoot"] * self.parameters.price_carbon_emissions_annual_overshoot
+    #
+    #     rhs = 0
+    #     constraints = lhs == rhs
+    #
+    #     self.constraints.add_constraint("constraint_cost_carbon_emissions_total",constraints)
+
     def constraint_cost_carbon_emissions_total(self):
         """ carbon cost associated with the carbon emissions of the system in each year
 
@@ -532,21 +555,28 @@ class EnergySystemRules(GenericRule):
             OPEX_y^\mathrm{c} = E_y\mu + E_y^\mathrm{o}\mu^\mathrm{o}
 
         """
-        mask_last_year = [year == self.energy_system.set_time_steps_yearly[-1] for year in self.energy_system.set_time_steps_yearly]
+        mask_last_year = [year == self.energy_system.set_time_steps_yearly[-1] for year in
+                          self.energy_system.set_time_steps_yearly]
 
         lhs = (self.variables["cost_carbon_emissions_total"]
-                   - self.variables["carbon_emissions_annual"] * self.parameters.price_carbon_emissions)
+               - self.variables["carbon_emissions_annual"] * self.parameters.price_carbon_emissions)
+
         # add cost for overshooting carbon emissions budget
         if self.parameters.price_carbon_emissions_budget_overshoot != np.inf:
-            lhs -= self.variables["carbon_emissions_budget_overshoot"].where(mask_last_year) * self.parameters.price_carbon_emissions_budget_overshoot
+            # Use linopy's broadcasting - multiply by scalar directly after applying where
+            budget_overshoot_term = self.variables["carbon_emissions_budget_overshoot"].where(mask_last_year, 0)
+            lhs -= budget_overshoot_term * float(self.parameters.price_carbon_emissions_budget_overshoot)
+
         # add cost for overshooting annual carbon emissions limit
         if self.parameters.price_carbon_emissions_annual_overshoot != np.inf:
-            lhs -= self.variables["carbon_emissions_annual_overshoot"] * self.parameters.price_carbon_emissions_annual_overshoot
+            # Use linopy's broadcasting - multiply by scalar directly
+            lhs -= self.variables["carbon_emissions_annual_overshoot"] * float(
+                self.parameters.price_carbon_emissions_annual_overshoot)
 
         rhs = 0
         constraints = lhs == rhs
 
-        self.constraints.add_constraint("constraint_cost_carbon_emissions_total",constraints)
+        self.constraints.add_constraint("constraint_cost_carbon_emissions_total", constraints)
 
     def constraint_cost_total(self):
         """ add up all costs from technologies and carriers

@@ -1,12 +1,9 @@
-import pandas as pd
 import os
-from pathlib import Path
+
 
 import pandas as pd
 from pathlib import Path
 
-import pandas as pd
-from pathlib import Path
 
 
 def analyze_european_production_share(production_path, demand_path, output_dir):
@@ -664,15 +661,15 @@ def analyze_monte_carlo_results_temporal_costs(param_dir_opex, param_dir_capex, 
 
 
 
-production_MC_dir = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/uncertainty_results/flow_conversion_output"
-opex_MC_dir = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/uncertainty_results/cost_opex_total"
-capex_MC_dir = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/uncertainty_results/cost_capex_total"
-prod_path = '/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/flow_conversion_output/flow_conversion_output_scenarios.csv'
-capac_path = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/capacity/capacity_scenarios.csv"
-opex_yearly_file = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/cost_opex_yearly/cost_opex_yearly_scenarios.csv"
-capex_yearly_file = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/cost_capex/cost_capex_scenarios.csv"
+production_MC_dir = "./uncertainty_results/flow_conversion_output"
+opex_MC_dir = "./uncertainty_results/cost_opex_total"
+capex_MC_dir = "./uncertainty_results/cost_capex_total"
+prod_path = './parameter_results/flow_conversion_output/flow_conversion_output_scenarios.csv'
+capac_path = "./parameter_results/capacity/capacity_scenarios.csv"
+opex_yearly_file = "./parameter_results/cost_opex_yearly/cost_opex_yearly_scenarios.csv"
+capex_yearly_file = "./parameter_results/cost_capex/cost_capex_scenarios.csv"
 output_dir = Path(
-    "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Summary Stats")
+    "./Summary Stats")
 # Add this line after defining output_dir
 output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -682,7 +679,7 @@ results = analyze_costs(opex_yearly_file, capex_yearly_file, output_dir)
 
 results = analyze_european_production_share(
     production_path=prod_path,
-    demand_path='/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/ZEN-Model_HP/set_carriers/HP/demand_yearly_variation.csv',
+    demand_path= Path(__file__).parent.parent / "ZEN-Model_HP" / "set_carriers" / "HP" / "demand_yearly_variation.csv",
     output_dir=output_dir
 )
 

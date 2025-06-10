@@ -126,11 +126,12 @@ def create_flow_plots(data_file, parameter: str, technology, carrier: str = "HP"
 
         # Dictionary for scenario name mapping
         scenario_names = {
-            0: 'Base Case',
-            1: 'Scenario 1',
-            2: 'Scenario 2',
-            3: 'Scenario 3',
-            4: 'Scenario 4'
+            0: 'BAU',
+            1: 'NZE',
+            2: 'Europe 40%',
+            3: 'Recycling',
+            4: 'Diffusion',
+            5: 'Tariffs'
         }
 
         df = pd.read_csv(data_file)

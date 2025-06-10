@@ -43,7 +43,7 @@ def process_trade_data(trans_path, technology_filter):
 
     # Save results
     results = pd.DataFrame(results)
-    output_dir = Path("/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Transport")
+    output_dir = Path("./Transport")
     output_path = output_dir / f'transport_stats_{technology_filter}.csv'
     results.to_csv(output_path, index=False)
     print(f"Total cost temporal analysis saved to: {output_path}")
@@ -93,7 +93,7 @@ def process_excel_trade_data(excel_path, target_countries, sheetname, years=[202
 
         results_df = pd.DataFrame(results)
         output_dir = Path(
-            "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Transport")
+            "./Transport")
         output_path = output_dir / f'comtrade_stats_{file_name}.csv'
         results_df.to_csv(output_path, index=False)
         print(f"Analysis saved: {output_path}")
@@ -106,11 +106,11 @@ countries = [
     'Germany', 'Italy', 'Japan',  'Rep. of Korea','USA'
 ]
 # Comtrade data
-excel_path = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/Transport/TradeData_Comtrade.xlsx"
+excel_path = "./Transport/TradeData_Comtrade.xlsx"
 trade_df = process_excel_trade_data(excel_path, countries, "Sheet1")
 
 #Model Data
-data = "/Users/fionakriwan/Library/CloudStorage/OneDrive-ETHZurich/ETH Master/Semesterproject/ZEN-garden/HP_Model/parameter_results/flow_transport/flow_transport_scenarios.csv"
+data = "./parameter_results/flow_transport/flow_transport_scenarios.csv"
 
 # Process for both technologies
 compressor_df = process_trade_data(data, "Compressor_transport")

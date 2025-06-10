@@ -19,7 +19,19 @@ class Subscriptable(BaseModel, extra="allow"):
         setattr(self, __name, __value)
 
     def keys(self) -> Any:
-        return self.model_dump().keys()
+        return {k: v for k, v in self.model_dump().items()
+                if k not in ['fix_keys', 'i']}.keys()
+
+    def items(self) -> Any:
+        return {k: v for k, v in self.model_dump().items()
+                if k not in ['fix_keys', 'i']}.items()
+
+    def values(self) -> Any:
+        return {k: v for k, v in self.model_dump().items()
+                if k not in ['fix_keys', 'i']}.values()
+
+    # def keys(self) -> Any:
+    #     return self.model_dump().keys()
 
     def update(self, new_values: dict[Any, Any]) -> None:
         for key, val in new_values.items():
@@ -28,11 +40,11 @@ class Subscriptable(BaseModel, extra="allow"):
             else:
                 setattr(self, key, val)
 
-    def items(self) -> Any:
-        return self.model_dump().items()
-
-    def values(self) -> Any:
-        return self.model_dump().values()
+    # def items(self) -> Any:
+    #     return self.model_dump().items()
+    #
+    # def values(self) -> Any:
+    #     return self.model_dump().values()
 
     def __iter__(self) -> Any:
         self.fix_keys = list(self.model_dump().keys())

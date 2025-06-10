@@ -40,8 +40,8 @@ def run_plotting():
     # Run the analysis
     # plot_production_uncertainty_cumulative(production_MC_dir, "HP_assembly")
     # plot_production_uncertainty_combined(production_MC_dir, "HP_assembly")
-    #plot_total_cost_uncertainty_violins(opex_MC_dir,capex_MC_dir)
-    #plot_total_cost_uncertainty_errorbars(opex_MC_dir,capex_MC_dir)
+    # plot_total_cost_uncertainty_violins(opex_MC_dir,capex_MC_dir)
+    # plot_total_cost_uncertainty_errorbars(opex_MC_dir,capex_MC_dir)
 
     # # #plot necessary
     plot_flow_conversion(production_file)
